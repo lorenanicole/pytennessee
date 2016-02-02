@@ -1,7 +1,7 @@
 from flask import Flask, request
-from cta_bustracker import CTABustracker
+from cta_api import CTABustracker
 import json
-from serializers import Prediction, MyEncoder
+from serializers import BusPrediction, MyEncoder
 
 app = Flask(__name__)
 
