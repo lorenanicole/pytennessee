@@ -1,5 +1,7 @@
 from json import JSONEncoder
 import time
+from datetime import datetime
+from dateutil import tz
 
 
 class BusPrediction(object):
@@ -11,6 +13,14 @@ class BusPrediction(object):
         self.distance_to_stop = int(kwargs.get("dstp", 0))
         self.requested_time = kwargs.get("tmstmp")
         self.vehicle_id = kwargs.get("vid")
+        self.bus_eta = self.set_bus_eta()
+
+    def set_bus_eta(self):
+        return (datetime.strptime(self.arrival_time, "%Y%m%d %H:%M") -
+               datetime.strptime(self.requested_time, "%Y%m%d %H:%M")).seconds / 60.0
+
+    def get_requested_time_hr(self):
+        return datetime.fromtimestamp(self.requested_time).replace(tzinfo=tz.tzlocal()).hour
 
 class Bulletin(object):
     def __init__(self, **kwargs):
@@ -30,12 +40,20 @@ class TrainPrediction(object):
         self.requested_time = kwargs.get("prdt")
         self.is_delayed = kwargs.get("isDly")
         self.is_scheduled = kwargs.get("isSch")
-        self.is_approached = kwargs.get("isApp")
+        self.is_approaching = kwargs.get("isApp")
         self.is_fault = kwargs.get("isFlt")
+        self.train_eta = self.set_train_eta()
+
+    def set_train_eta(self):
+        return (datetime.strptime(self.arrival_time, "%Y%m%d %H:%M:%S") -
+               datetime.strptime(self.requested_time, "%Y%m%d %H:%M:%S")).seconds / 60.0
+
+    def get_requested_time_hr(self):
+        return datetime.fromtimestamp(self.requested_time).replace(tzinfo=tz.tzlocal()).hour
 
 class UberTimeEstimate(object):
     def __init__(self, request_id, starting_lat, starting_long, **kwargs):
-        self.type = kwargs.get("localized_display_name")
+        self.type = kwargs.get("localized_display_name") # or type
         self.estimate = kwargs.get("estimate")
         self.request_id = request_id
         self.starting_lat = starting_lat
