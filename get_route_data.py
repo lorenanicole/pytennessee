@@ -28,7 +28,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/bus_data.csv", "ab") as csvdata
         for prediction in predictions:
             wr.writerow(prediction.__dict__.values())
         for cali_p in cali_predictions:
-            wr.writerow(cali_p.__dict__.values())
+            wr.writerow(cali_p.__dict__.values())  # ['distance_to_stop', 'route', 'vehicle_id', 'arrival_time', 'requested_time', 'route_direction', 'stop_name']
         # wr.writerow([package.location for package in pip.get_installed_distributions()])
 
 train_tracker = CTATraintracker("7b068cae03d94557923fb832f293efa5")

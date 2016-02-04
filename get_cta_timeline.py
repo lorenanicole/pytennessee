@@ -25,4 +25,5 @@ with open("/Users/lorenamesa/Desktop/pytennessee/cta_tweet_data.csv", "ab") as c
         logging.info("Writing tweets for cta timeline data...")
         wr = csv.writer(csvdata, dialect='excel')
         for tweet in user_timeline:
+            print tweet.__dict__.keys()  # ['tweet_id', 'created_at', 'text']
             wr.writerow(tweet.__dict__.values())
