@@ -25,7 +25,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/bus_data.csv", "r") as csvdata:
     etas = [int(bus_eta.bus_eta) for bus_eta in all_bus if 6 < bus_eta.get_requested_time_hr() < 12 and bus_eta.stop_name == 'North Ave & California']
     north_ave_etas = [bus_eta for bus_eta in all_bus if 6 < bus_eta.get_requested_time_hr() < 12 and bus_eta.stop_name == 'North Ave & California']
 
-    print len(etas)  # 398
+    print len(etas)  # 461
 
 
     # eta_hours = [bus_eta.get_requested_time_hr() for bus_eta in all_bus if 6 < bus_eta.get_requested_time_hr() < 12 and bus_eta.stop_name == 'North Ave & California']
@@ -42,10 +42,10 @@ with open("/Users/lorenamesa/Desktop/pytennessee/bus_data.csv", "r") as csvdata:
     pylab.xlabel("Minutes Until Pickup")
     pylab.ylabel("Number of Buses")
     pylab.plot()
-    pylab.show()
+    # pylab.show()
 
     ranges = list(data[1][0:7])
-    categories = []  # ['1.0 to 6.0', '6.0 to 11.0', '11.0 to 16.0', '16.0 to 21.0', '21.0 to 26.0', '26.0 to 31.0']
+    categories = []  # ['0.0 to 5.16666666667', '5.16666666667 to 10.3333333333', '10.3333333333 to 15.5', '15.5 to 20.6666666667', '20.6666666667 to 25.8333333333', '25.8333333333 to 31.0']
     num_categories = []
 
     for num in xrange(len(ranges)-1):
@@ -66,32 +66,32 @@ with open("/Users/lorenamesa/Desktop/pytennessee/bus_data.csv", "r") as csvdata:
     cali_etas = [bus_eta.bus_eta for bus_eta in all_bus if 6 < bus_eta.get_requested_time_hr() < 12 and bus_eta.stop_name == 'California & Le Moyne']
     cali_st_etas = [bus_eta for bus_eta in all_bus if 6 < bus_eta.get_requested_time_hr() < 12 and bus_eta.stop_name == 'California & Le Moyne']
 
-    print len(cali_st_etas)  # 395
+    print len(cali_st_etas)  # 469
     pylab.figure()
-    data = pylab.hist(cali_etas, bins=6)
+    cali_data = pylab.hist(cali_etas, bins=6)
 
     pylab.title("Range of California Bus ETAs in January 2016 From Home to Work Between 6am to 12pm")
     pylab.legend(loc='best')
     pylab.xlabel("Minutes Until Pickup")
     pylab.ylabel("Number of Buses")
     pylab.plot()
-    pylab.show()
+    # pylab.show()
 
-    ranges = list(data[1][0:7])
-    categories = []  # ['0.0 to 5.16666666667', '5.16666666667 to 10.3333333333', '10.3333333333 to 15.5', '15.5 to 20.6666666667', '20.6666666667 to 25.8333333333', '25.8333333333 to 31.0']
-    num_categories = []
+    cali_ranges = list(cali_data[1][0:7])
+    cali_categories = []  # ['0.0 to 5.16666666667', '5.16666666667 to 10.3333333333', '10.3333333333 to 15.5', '15.5 to 20.6666666667', '20.6666666667 to 25.8333333333', '25.8333333333 to 31.0']
+    cali_num_categories = []
 
-    for num in xrange(len(ranges)-1):
-        categories.append(str(ranges[num]) + " to " + str(ranges[num+1]))
+    for num in xrange(len(cali_ranges)-1):
+        cali_categories.append(str(cali_ranges[num]) + " to " + str(cali_ranges[num+1]))
 
-    for num in xrange(len(ranges)-1):
-        num_categories.append([ranges[num], ranges[num+1]])
-    print num_categories
-    print categories  #
+    for num in xrange(len(cali_ranges)-1):
+        cali_num_categories.append([cali_ranges[num], cali_ranges[num+1]])
+    print cali_num_categories
+    print cali_categories  #
 
-    counter = 0
+
     for bus_prediction in cali_st_etas:
-        for category in num_categories:
+        for category in cali_num_categories:
             if category[0] < float(bus_prediction.bus_eta) < category[1]:
                 bus_prediction.bus_eta = str(category[0]) + " to " + str(category[1])
                 break

@@ -1,26 +1,50 @@
 import csv
 from serializers import UberDurationEstimate, UberTimeEstimate
-import datetime
+from datetime import datetime
 import pylab
+from dateutil import tz
 
 all_duration = []
 all_eta = []
+all_dates = []
+string_dates = []
+with open("/Users/lorenamesa/Desktop/pytennessee/uber_jobs.log", "r") as uber_jobs:
+
+    for row in uber_jobs:
+        string_date = row[0:16]
+        print string_date
+        string_dates.append(string_date)
+        all_dates.append(datetime.strptime(string_date, "%Y-%m-%d %H:%M").replace(tzinfo=tz.tzlocal()))
+
+# print all_dates
 
 with open("/Users/lorenamesa/Desktop/pytennessee/uber_duration_data.csv", "r") as csvdata:
     headers = ['starting_long', 'ending_long', 'high_estimate', 'surge_multiplier', 'starting_lat', 'low_estimate', 'request_id', 'duration', 'localized_display_name', 'ending_lat']
     reader = csv.reader(csvdata)
 
+
     for row in reader:
         data = dict(zip(headers, row))
         duration = UberDurationEstimate(**data)
         all_duration.append(duration)
-        # print duration.surge
-        # print datetime.datetime.fromtimestamp(float(weather.local_epoch)), weather.weather, weather.feels_like
 
-    surging = set([float(duration.surge) for duration in all_duration])
-    surging = [float(duration.surge) for duration in all_duration if duration.starting_lat == "41.908511" and duration.type == "uberX"]
+    duration_req_ids = set([duration.request_id for duration in all_duration])
+    req_id_to_date = dict(zip(duration_req_ids, all_dates))
 
-    # print len(surging) # 160
+
+    all_duration = [d for d in all_duration if d.request_id in req_id_to_date.keys()]
+    for duration in all_duration:
+        print req_id_to_date[duration.request_id]
+        utctimestamp = int((req_id_to_date[duration.request_id] - datetime(1970, 1, 1, tzinfo=tz.tzutc())).total_seconds())
+        duration.set_requested_time(utctimestamp)
+
+    uberX_surging = [duration for duration in all_duration if duration.starting_lat == "41.908511" and duration.type == "uberX" and 6 < duration.get_requested_time_hr() < 12]
+
+    # print "Num of duration req ids : ", len(duration_req_ids)
+
+    surging = [float(duration.surge) for duration in uberX_surging]
+
+    print len(surging)  # 117
     pylab.figure()
     data = pylab.hist(surging, bins=6)
 
@@ -41,11 +65,9 @@ with open("/Users/lorenamesa/Desktop/pytennessee/uber_duration_data.csv", "r") a
     for num in xrange(len(ranges)-1):
         num_categories.append([ranges[num],ranges[num+1]])
     print num_categories
-    print categories  # ['1.0 to 1.1', '1.1 to 1.2', '1.2 to 1.3', '1.3 to 1.4', '1.4 to 1.5', '1.5 to 1.6']
+    print categories  # ['1.0 to 1.15', '1.15 to 1.3', '1.3 to 1.45', '1.45 to 1.6', '1.6 to 1.75', '1.75 to 1.9']
 
     counter = 0
-
-    uberX_surging = [duration for duration in all_duration if duration.starting_lat == "41.908511" and duration.type == "uberX"]
 
     for uberX in uberX_surging:
         for category in num_categories:
@@ -64,14 +86,17 @@ with open("/Users/lorenamesa/Desktop/pytennessee/uber_eta_data.csv", "r") as csv
         duration = UberTimeEstimate(**data)
         all_eta.append(duration)
 
-    # surging = set([duration.weather for duration in all_duration])
-    etas = [float(eta.estimate) / 60 for eta in all_eta if eta.starting_lat == "41.908511" and eta.type == "uberX"]
-    uberX_etas = [eta for eta in all_eta if eta.starting_lat == "41.908511" and eta.type == "uberX"]
+    all_eta = [eta for eta in all_eta if eta.request_id in req_id_to_date.keys()]
 
-    for uberX_eta in uberX_etas:
-        uberX_eta.estimate = float(uberX_eta.estimate) / 60
+    for eta in all_eta:
+        eta.estimate = float(eta.estimate) / 60
+        utctimestamp = int((req_id_to_date[eta.request_id] - datetime(1970, 1, 1, tzinfo=tz.tzutc())).total_seconds())
+        eta.set_requested_time(utctimestamp)
 
-    # print len(etas) # 160
+    uberX_etas = [eta for eta in all_eta if eta.starting_lat == "41.908511" and eta.type == "uberX" and 6 < eta.get_requested_time_hr() < 12]
+    etas = [eta.estimate for eta in uberX_etas]
+
+    print len(etas)  # 117
     pylab.figure()
     data = pylab.hist(etas, bins=6)
 
@@ -102,7 +127,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/uber_eta_data.csv", "r") as csv
                 break
 
 with open("/Users/lorenamesa/Desktop/pytennessee/uberx_morning_labeled_data.csv", "w") as csvdata:
-    headers = ['request_id', 'surge_rate', 'eta']
+    headers = ['request_time', 'request_id', 'surge_rate', 'eta']
 
     uberX_requests = {}
     for uberX in uberX_surging:
@@ -121,7 +146,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/uberx_morning_labeled_data.csv"
     writer.writerow(headers)
 
     for uberX_request, data in uberX_requests.iteritems():
-            writer.writerow([uberX_request, data.get("surge_rate").surge, data.get("eta").estimate])
+            writer.writerow([data.get("eta").requested_time, uberX_request, data.get("surge_rate").surge, data.get("eta").estimate])
 
 
-
+#

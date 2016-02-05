@@ -59,6 +59,13 @@ class UberTimeEstimate(object):
         self.starting_lat = starting_lat
         self.starting_long = starting_long
 
+    def set_requested_time(self, utctimestamp):
+        self.requested_time = utctimestamp
+
+    def get_requested_time_hr(self):
+        return datetime.fromtimestamp(self.requested_time).replace(tzinfo=tz.tzlocal()).hour
+
+
 class UberDurationEstimate(object):
     def __init__(self, request_id, starting_lat, starting_long, ending_lat, ending_long, **kwargs):
         self.type = kwargs.get("localized_display_name")
@@ -72,6 +79,13 @@ class UberDurationEstimate(object):
         self.starting_long = starting_long
         self.ending_lat = ending_lat
         self.ending_long = ending_long
+
+    def set_requested_time(self, utctimestamp):
+        self.requested_time = utctimestamp
+
+    def get_requested_time_hr(self):
+        return datetime.fromtimestamp(self.requested_time).replace(tzinfo=tz.tzlocal()).hour
+
 
 class Tweet(object):
     def __init__(self, **kwargs):

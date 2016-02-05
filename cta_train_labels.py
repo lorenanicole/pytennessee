@@ -26,7 +26,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/train_data.csv", "r") as csvdat
     etas = [int(train_eta.train_eta) for train_eta in all_train if 6 < train_eta.get_requested_time_hr() < 12 and train_eta.stop_name == 'Damen']
     north_ave_etas = [train_eta for train_eta in all_train if 6 < train_eta.get_requested_time_hr() < 12 and train_eta.stop_name == 'Damen']
 
-    print len(etas)  # 457
+    print len(etas)  # 589
     pylab.figure()
     data = pylab.hist(etas, bins=6)
 
@@ -45,7 +45,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/train_data.csv", "r") as csvdat
     # pylab.show()
 
     ranges = list(data[1][0:7])
-    categories = []  # [['1.0 to 5.33333333333', '5.33333333333 to 9.66666666667', '9.66666666667 to 14.0', '14.0 to 18.3333333333', '18.3333333333 to 22.6666666667', '22.6666666667 to 27.0']
+    categories = []  # ['1.0 to 5.5', '5.5 to 10.0', '10.0 to 14.5', '14.5 to 19.0', '19.0 to 23.5', '23.5 to 28.0']
     num_categories = []
 
     for num in xrange(len(ranges)-1):
@@ -65,7 +65,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/train_data.csv", "r") as csvdat
     cali_etas = [train_eta.train_eta for train_eta in all_train if 6 < train_eta.get_requested_time_hr() < 12 and train_eta.stop_name == 'California']
     cali_st_etas = [train_eta for train_eta in all_train if 6 < train_eta.get_requested_time_hr() < 12 and train_eta.stop_name == 'California']
 
-    print len(cali_st_etas)  # 576
+    print len(cali_st_etas)  # 718
     pylab.figure()
     data = pylab.hist(cali_etas, bins=6)
 

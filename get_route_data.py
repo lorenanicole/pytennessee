@@ -18,7 +18,7 @@ sys.path.append('/Users/lorenamesa/Desktop/pyten/lib/python2.7/site-packages/')
 
 from cta_api import CTABustracker, CTATraintracker
 
-bus_tracker = CTABustracker("T6ketWk5cWetPgYVqkvEVJVng")
+bus_tracker = CTABustracker()
 predictions = bus_tracker.get_stop_on_route_predictions(route_id=72, stp_id="890,944")
 cali_predictions = bus_tracker.get_stop_on_route_predictions(route_id=52, stp_id="3183,3006")
 with open("/Users/lorenamesa/Desktop/pytennessee/bus_data.csv", "ab") as csvdata:

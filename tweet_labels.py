@@ -33,7 +33,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/cta_tweet_data.csv", "r") as cs
         # print datetime.datetime.strptime(tweet.created_at, "%Y%m%d %H:%M")  # local time
         # print bus_prediction.get_requested_time_hr()
 
-    print len(all_tweets) # 244
+    print len(all_tweets) # 262
 
     all_tweet_bigrams = [ngrams(re.sub(r'[^\w\s]', '', data.text), 2) for tweet_id, data in all_tweets.iteritems()]
     all_tweet_bigrams = sum(all_tweet_bigrams, [])
@@ -48,7 +48,7 @@ with open("/Users/lorenamesa/Desktop/pytennessee/cta_tweet_data.csv", "r") as cs
             bigrams_freq[joined_bigram] += 1
 
     sorted_bigrams_freq = sorted(bigrams_freq.items(), key=operator.itemgetter(1), reverse=True)
-    print sorted_bigrams_freq[:10] # [('trains are', 104), ('Line trains', 92), ('are operating', 64), ('residual delays', 61), ('delays after', 61), ('operating with', 61), ('with residual', 59), ('due to', 56), ('buses are', 47), ('rerouted via', 47)]
+    print sorted_bigrams_freq[:10] # [('trains are', 112), ('Line trains', 100), ('are operating', 70), ('residual delays', 67), ('delays after', 67), ('operating with', 67), ('with residual', 65), ('due to', 60), ('buses are', 50), ('rerouted via', 50)]
 
     labels = [bigram[0] for bigram in sorted_bigrams_freq[:10]]
     data = [bigram[1] for bigram in sorted_bigrams_freq[:10]]
