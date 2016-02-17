@@ -1,0 +1,102 @@
+DROP TABLE bus_predictions;
+
+CREATE TABLE bus_predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stop_name CHAR(50) NOT NULL,
+    route CHAR(50) NOT NULL,
+    direction CHAR(50) NOT NULL,
+    arrival_time BIGINT NOT NULL,
+    requested_time BIGINT NOT NULL,
+    distance INTEGER,
+    vehicle_id INTEGER,
+    eta INTEGER NOT NULL
+);
+
+DROP TABLE train_predictions;
+
+CREATE TABLE train_predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stop_name CHAR(50) NOT NULL,
+    route CHAR(50) NOT NULL,
+    direction NOT NULL,
+    arrival_time BIGINT NOT NULL,
+    requested_time BIGINT NOT NULL,
+    delayed INTEGER,
+    scheduled INTEGER,
+    approaching INTEGER,
+    fault INTEGER,
+    eta INTEGER NOT NULL
+);
+
+DROP TABLE uber_predictions;
+
+CREATE TABLE uber_predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type CHAR(50) NOT NULL, 
+    requested_time BIGINT NOT NULL,
+    lat REAL NOT NULL,
+    long REAL NOT NULL,
+    eta INTEGER NOT NULL
+);
+
+DROP TABLE uber_durations;
+
+CREATE TABLE uber_durations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    requested_time BIGINT NOT NULL,
+    type CHAR(50) NOT NULL, 
+    duration INTEGER NOT NULL,
+    surge REAL NOT NULL,
+    low_estimate INTEGER NOT NULL,
+    high_estimate INTEGER NOT NULL,
+    lat REAL NOT NULL,
+    long REAL NOT NULL,
+    end_lat REAL NOT NULL,
+    end_long REAL NOT NULL
+);
+
+DROP TABLE tweets;
+
+CREATE TABLE tweets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    requested_time BIGINT NOT NULL,
+    tweet_id BIGINT UNIQUE,
+    text CHAR(200) NOT NULL, 
+    created_at CHAR(100) NOT NULL
+);
+
+DROP TABLE weather;
+
+CREATE TABLE weather (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    requested_time BIGINT NOT NULL,
+    location CHAR(100) NOT NULL,
+    temperature INTEGER NOT NULL,
+    feels_like INTEGER NOT NULL,
+    weather CHAR(50) NOT NULL,
+    windchill CHAR(50) NOT NULL,
+    percipitation_within_hour CHAR(50)
+);
+
+CREATE TABLE routes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time_start BIGINT NOT NULL,
+    time_stop BIGINT NOT NULL,
+    type VARCAR(50) NOT NULL,
+    location VARCAR(150) NOT NULL,
+    detination VARCAR(150) NOT NULL
+
+);
+
+CREATE TABLE routes_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    route_id INTEGER NOT NULL,
+    UNIQUE(user_id, route_id)
+);
+
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email INTEGER NOT NULL UNIQUE,
+    password VARCHAR(10) NOT NULL
+);

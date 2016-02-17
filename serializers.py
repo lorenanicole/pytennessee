@@ -3,24 +3,51 @@ import time
 from datetime import datetime
 from dateutil import tz
 
+class CTATimeMixin(object):
+    def from_timestring_to_utctimestamp(self, timestamp, type=None):
 
-class BusPrediction(object):
-    def __init__(self, **kwargs):
-        self.stop_name = kwargs.get("stpnm")
-        self.route = kwargs.get("rt")
-        self.route_direction = kwargs.get("rtdir")
-        self.arrival_time = kwargs.get("prdtm")
-        self.distance_to_stop = int(kwargs.get("dstp", 0))
-        self.requested_time = kwargs.get("tmstmp")
-        self.vehicle_id = kwargs.get("vid")
-        self.bus_eta = self.set_bus_eta()
+        # Sigh, TrainPredictions include seconds, BusPredictions don't
+        if type == 'train':
+            timestr_format = "%Y%m%d %H:%M:%S"
+        else:
+            timestr_format = "%Y%m%d %H:%M"
 
-    def set_bus_eta(self):
-        return (datetime.strptime(self.arrival_time, "%Y%m%d %H:%M") -
-               datetime.strptime(self.requested_time, "%Y%m%d %H:%M")).seconds / 60.0
+        local_datetime = datetime.strptime(timestamp, timestr_format).replace(tzinfo=tz.tzlocal())
+        return (local_datetime - datetime(1970, 1, 1, tzinfo=tz.tzutc())).total_seconds()
+
+    def set_eta(self):
+        return (self.arrival_time - self.requested_time) / 60
 
     def get_requested_time_hr(self):
         return datetime.fromtimestamp(self.requested_time).replace(tzinfo=tz.tzlocal()).hour
+
+class BusPrediction(CTATimeMixin):
+    def __init__(self, **kwargs):
+        self.stop_name = kwargs.get("stpnm")
+        self.route = kwargs.get("rt")
+        self.direction = kwargs.get("rtdir")
+        self.arrival_time = self.from_timestring_to_utctimestamp(kwargs.get("prdtm"), type='bus')
+        self.distance = int(kwargs.get("dstp", 0))
+        self.requested_time = kwargs.get('requested_time')  # self.from_timestring_to_utctimestamp(kwargs.get("tmstmp"), type='bus')
+        self.vehicle_id = kwargs.get("vid")
+        self.eta = self.set_eta()
+
+    # def get_requested_time_hour(self):
+    #     self.from_timestring_to_utctimestamp()
+    #     return int(datetime.fromtimestamp(self.requested_time).replace(tzinfo=tz.tzlocal()).hour)
+
+class TrainPrediction(CTATimeMixin):
+    def __init__(self, **kwargs):
+        self.stop_name = kwargs.get("staNm")
+        self.route = kwargs.get("rt")
+        self.direction = kwargs.get("trDr")
+        self.arrival_time = self.from_timestring_to_utctimestamp(kwargs.get("arrT"), type='train')
+        self.requested_time = kwargs.get('requested_time')  # self.from_timestring_to_utctimestamp(kwargs.get("prdt"), type='train')
+        self.delayed = kwargs.get("isDly")
+        self.scheduled = kwargs.get("isSch")
+        self.approaching = kwargs.get("isApp")
+        self.fault = kwargs.get("isFlt")
+        self.eta = self.set_eta()
 
 class Bulletin(object):
     def __init__(self, **kwargs):
@@ -31,33 +58,13 @@ class Bulletin(object):
         self.priority = kwargs.get("prty")
         self.route = kwargs.get("srvc").get("rt") if kwargs.get("srvc") else "N/A"
 
-class TrainPrediction(object):
-    def __init__(self, **kwargs):
-        self.stop_name = kwargs.get("staNm")
-        self.route = kwargs.get("rt")
-        self.train_direction = kwargs.get("trDr")
-        self.arrival_time = kwargs.get("arrT")
-        self.requested_time = kwargs.get("prdt")
-        self.is_delayed = kwargs.get("isDly")
-        self.is_scheduled = kwargs.get("isSch")
-        self.is_approaching = kwargs.get("isApp")
-        self.is_fault = kwargs.get("isFlt")
-        self.train_eta = self.set_train_eta()
-
-    def set_train_eta(self):
-        return (datetime.strptime(self.arrival_time, "%Y%m%d %H:%M:%S") -
-               datetime.strptime(self.requested_time, "%Y%m%d %H:%M:%S")).seconds / 60.0
-
-    def get_requested_time_hr(self):
-        return datetime.fromtimestamp(self.requested_time).replace(tzinfo=tz.tzlocal()).hour
-
 class UberTimeEstimate(object):
-    def __init__(self, request_id, starting_lat, starting_long, **kwargs):
+    def __init__(self, requested_time, lat, long, **kwargs):
         self.type = kwargs.get("localized_display_name") # or type
-        self.estimate = kwargs.get("estimate")
-        self.request_id = request_id
-        self.starting_lat = starting_lat
-        self.starting_long = starting_long
+        self.eta = int(kwargs.get("estimate")) / 60
+        self.requested_time = requested_time
+        self.lat = lat  # starting_lat
+        self.long = long  # starting_long
 
     def set_requested_time(self, utctimestamp):
         self.requested_time = utctimestamp
@@ -67,16 +74,16 @@ class UberTimeEstimate(object):
 
 
 class UberDurationEstimate(object):
-    def __init__(self, request_id, starting_lat, starting_long, ending_lat, ending_long, **kwargs):
+    def __init__(self, requested_time, lat, long, ending_lat, ending_long, **kwargs):
         self.type = kwargs.get("localized_display_name")
         self.duration = kwargs.get("duration")
-        self.high_estimate = kwargs.get("high_estimate")
-        self.low_estimate = kwargs.get("high_estimate")
+        self.high_estimate = kwargs.get("high_estimate", 0)
+        self.low_estimate = kwargs.get("low_estimate", 0)
         self.surge = kwargs.get("surge_multiplier")
         # self.distance = kwargs.get("distance")
-        self.request_id = request_id
-        self.starting_lat = starting_lat
-        self.starting_long = starting_long
+        self.requested_time = requested_time
+        self.lat = lat
+        self.long = long
         self.ending_lat = ending_lat
         self.ending_long = ending_long
 
@@ -88,22 +95,21 @@ class UberDurationEstimate(object):
 
 
 class Tweet(object):
-    def __init__(self, **kwargs):
+    def __init__(self, requested_time, **kwargs):
+        self.requested_time = requested_time
         self.tweet_id = kwargs.get("id_str")
         self.text = kwargs.get("text")
         self.created_at = kwargs.get("created_at")
 
 class CurrentWeather(object):
-    def __init__(self, **kwargs):
-        self.local_epoch = kwargs.get("local_epoch")  # Local time observed
+    def __init__(self, requested_time, **kwargs):
+        self.requested_time = requested_time # kwargs.get("local_epoch")  # Local time observed
         self.location = kwargs.get("display_location").get("full") if kwargs.get("display_location") else "N/A"
-        self.temp = kwargs.get("temp_f")
-        self.temp_display = kwargs.get("temperature_string")
+        self.temperature = kwargs.get("temp_f")
         self.feels_like = kwargs.get("feelslike_f")
         self.weather = kwargs.get("weather")
-        self.wind_display = kwargs.get("wind_string")
         self.windchill = kwargs.get("windchill_f")
-        self.percipitation_within_hr = kwargs.get("precip_1hr_in")
+        self.percipitation_within_hour = kwargs.get("precip_1hr_in")
 
 class MyEncoder(JSONEncoder):
     def default(self, o):
